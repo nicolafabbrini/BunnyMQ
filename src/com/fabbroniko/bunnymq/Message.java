@@ -1,5 +1,6 @@
 package com.fabbroniko.bunnymq;
 
+import java.nio.ByteBuffer;
 import java.util.Calendar;
 import java.util.TimeZone;
 import java.util.concurrent.Delayed;
@@ -37,13 +38,14 @@ public class Message implements Delayed {
 	 * So the minimum message length is 8 bytes and the total length would be 8+n bytes
 	 */
 	public Message(final byte[] msg) {
-		if(msg.length < Long.SIZE)
+		if(msg.length < Long.BYTES)
 			throw new IllegalArgumentException("The encoded message must be at least Long.SIZE bytes.");
 		
-		final String expirationTimestampString = new String(msg, 0, Long.SIZE);
-		final String message = new String(msg, Long.SIZE, msg.length - Long.SIZE);
+		final ByteBuffer expirationTimestamp = ByteBuffer.allocate(Long.BYTES);
+		expirationTimestamp.put(msg, 0, Long.BYTES);
+		final String message = new String(msg, Long.BYTES, msg.length - Long.BYTES);
 		
-		this.expirationTimestamp = Long.valueOf(expirationTimestampString);
+		this.expirationTimestamp = expirationTimestamp.getLong(0);
 		this.message = message;
 	}
 	
@@ -56,12 +58,14 @@ public class Message implements Delayed {
 	}
 
 	public byte[] getMessageAsBytes() {
-		final byte[] expirationTimestamp = String.valueOf(this.expirationTimestamp).getBytes();
+		final ByteBuffer expirationTimestamp = ByteBuffer.allocate(Long.BYTES);
+		expirationTimestamp.putLong(this.expirationTimestamp);
+		final byte[] expirationTimestampArray = expirationTimestamp.array();
 		final byte[] message = this.message.getBytes();
-		final byte[] finalMessage = new byte[expirationTimestamp.length + message.length];
+		final byte[] finalMessage = new byte[expirationTimestampArray.length + message.length];
 		
-		System.arraycopy(expirationTimestamp, 0, finalMessage, 0, expirationTimestamp.length);
-		System.arraycopy(message, 0, finalMessage, expirationTimestamp.length, message.length);
+		System.arraycopy(expirationTimestampArray, 0, finalMessage, 0, expirationTimestampArray.length);
+		System.arraycopy(message, 0, finalMessage, expirationTimestampArray.length, message.length);
 		
 		return finalMessage;
 	}
