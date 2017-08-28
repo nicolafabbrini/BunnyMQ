@@ -17,7 +17,7 @@ public class BunnyQueue <T> {
 		this.currentElement = null;
 	}
 	
-	public boolean add(final T element) {
+	public void add(final T element) {
 		if(element == null)
 			throw new NullPointerException("Can't insert a null element.");
 		
@@ -59,7 +59,7 @@ public class BunnyQueue <T> {
 	 * The last element is added back at the end of the queue.
 	 * @return true if there was enough space to add the element back to the queue, false otherwise.
 	 */
-	public boolean nack() {
+	public void nack() {
 		if(currentElement == null)
 			throw new IllegalStateException("The current element shouldn't be null.");
 		

@@ -1,20 +1,19 @@
 package com.fabbroniko.bunnymq;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 
-//TODO implement indexing strategy here to allow faster read/write
 public class Persister {
 	
-	private static final Persister INSTANCE = new Persister();
+	private RandomAccessFile randomAccessFile;
 	
-	private Persister() {}
-	
-	public static Persister getInstance() {
-		return INSTANCE;
+	public Persister(final String fileLocation) throws FileNotFoundException {
+		this.randomAccessFile = new RandomAccessFile(fileLocation, "rwd"); // Read/Write and immediately synch to the underlying storage system
 	}
 	
 	public void open() throws IOException {
-		// TODO open the file
+		
 	}
 	
 	public void persist(final String message) throws IOException {
@@ -29,6 +28,6 @@ public class Persister {
 	
 	
 	public void close() throws IOException {
-		// TODO Close the file 
+		randomAccessFile.close();
 	}
 }
