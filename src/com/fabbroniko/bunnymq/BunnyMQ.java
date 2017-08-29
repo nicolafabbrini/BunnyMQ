@@ -1,7 +1,7 @@
 package com.fabbroniko.bunnymq;
 
-import java.util.Map;
-import java.util.Queue;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.concurrent.DelayQueue;
 
 /**
@@ -20,39 +20,69 @@ public class BunnyMQ {
 	public static final String POISON_MESSAGE_CONTENT = "BunnyMQPoisonMessage";
 	
 	private Properties properties;
-	private Queue<Message> queue;
+	private DelayQueue<Message> queue;
 	private Persister persister;
 	
-	public BunnyMQ() {
+	private boolean isClosing;
+	
+	public BunnyMQ() throws FileNotFoundException {
 		this(null);
 	}
 	
-	public BunnyMQ(final Properties properties) {
+	public BunnyMQ(final Properties properties) throws FileNotFoundException {
 		if(properties == null)
 			this.properties = new Properties();
 		
 		this.properties = properties;
 		this.queue = new DelayQueue<>();
+		this.persister = new Persister(null); // TODO file name
+		
+		// TODO try to load the content of previously written file
 	}
 	
-	public void push(final String message) {
-		// TODO add message to the queue
+	public synchronized void push(final String message) {
+		this.push(new Message(message, properties.getDelay()));
 	}
 	
-	public void push(final Message message) {
-		// TODO
+	public synchronized void push(final Message message) {
+		if(message == null)
+			throw new NullPointerException();
+		
+		// TODO persist
+		
+		if(!isClosing)
+			queue.add(message);
 	}
 	
 	public Message pull() {
-		// TODO pull message from the given queue
-		return null;
+		Message message;
+		
+		// Get the first expired element in the queue
+		try {
+			message = queue.take();
+			
+			// if it's a poison message, add it back to the queue to allow the other consumers to consume it until none is left.
+			if(message.getMessage().equals(POISON_MESSAGE_CONTENT)) {
+				queue.add(message);
+			} else {
+				// TODO remove from persistence
+			}
+		} catch (final InterruptedException e) {
+			// If interrupted, return the poison message to close the consumer;
+			message = new Message(POISON_MESSAGE_CONTENT, 0);
+		}
+			
+		return message;
 	}
 	
 	/** 
 	 * Forces the consumers to be closed.
+	 * @throws IOException 
 	 */
-	public void close() {
+	public synchronized void close() throws IOException {
 		queue.add(new Message(POISON_MESSAGE_CONTENT, 0));
+		isClosing = true;
+		persister.close();
 	}
 	
 	public class Properties {
