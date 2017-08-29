@@ -2,6 +2,7 @@ package com.fabbroniko.bunnymq;
 
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.DelayQueue;
 
 /**
  * Requirements V1.0:
@@ -19,7 +20,8 @@ public class BunnyMQ {
 	public static final String POISON_MESSAGE_CONTENT = "BunnyMQPoisonMessage";
 	
 	private Properties properties;
-	private Map<String, Queue<String>> queueMap; // Queue name, queue
+	private Queue<Message> queue;
+	private Persister persister;
 	
 	public BunnyMQ() {
 		this(null);
@@ -30,47 +32,64 @@ public class BunnyMQ {
 			this.properties = new Properties();
 		
 		this.properties = properties;
-		
-		// TODO start manager thread 
-		// TODO setup exhcange
+		this.queue = new DelayQueue<>();
 	}
 	
-	public void newQueue(final String name) {
-		// TODO Create a new pair name / queue
-		// TODO set properties to the queue
-	}
-	
-	public void push(final String queueName, final String message) {
+	public void push(final String message) {
 		// TODO add message to the queue
 	}
 	
-	public Message pull(final String queueName) {
+	public void push(final Message message) {
+		// TODO
+	}
+	
+	public Message pull() {
 		// TODO pull message from the given queue
 		return null;
 	}
 	
+	/** 
+	 * Forces the consumers to be closed.
+	 */
 	public void close() {
-		// TODO add poison message to each queue
+		queue.add(new Message(POISON_MESSAGE_CONTENT, 0));
 	}
 	
 	public class Properties {
 		
 		private boolean persistent;
+		private long delay;
 		
 		public Properties() {
 			this(false);
 		}
 		
 		public Properties(final boolean persistent) {
+			this(persistent, 0);
+		}
+		
+		public Properties(final boolean persistent, final long delay) {
+			if(delay < 0)
+				throw new IllegalArgumentException("Delay can't be negative.");
+			
 			this.persistent = persistent;
+			this.delay = delay;
 		}
 		
 		public void setPersistent(final boolean persistent) {
 			this.persistent = persistent;
 		}
 		
+		public void setDelay(final long delay) {
+			this.delay = delay;
+		}
+		
 		public boolean isPersistent() {
 			return persistent;
+		}
+		
+		public long getDelay() {
+			return delay;
 		}
 	}
 }

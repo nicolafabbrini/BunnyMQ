@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 public class Message implements Delayed {
 	
 	private String message;
+	private long delay;
 	private long expirationTimestamp;
 	private TimeZone timeZone;
 	
@@ -18,6 +19,7 @@ public class Message implements Delayed {
 		if(delay < 0)
 			throw new IllegalArgumentException("Delay can't be less than 0.");
 		
+		this.delay = delay;
 		this.message = message;
 		this.timeZone = timeZone;
 		this.expirationTimestamp = Calendar.getInstance(timeZone).getTime().getTime() + delay;
@@ -55,6 +57,10 @@ public class Message implements Delayed {
 	
 	public String getMessage() {
 		return message;
+	}
+	
+	public void reset() {
+		this.expirationTimestamp = Calendar.getInstance(timeZone).getTime().getTime() + delay;
 	}
 
 	public byte[] getMessageAsBytes() {

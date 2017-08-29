@@ -56,4 +56,23 @@ public class MessageTest {
 		
 		assertEquals(message, messageFromBytes);
 	}
+	
+	@Test
+	public void testReset() throws InterruptedException {
+		final Message message = new Message("JUnit test", 500);
+		
+		assertEquals("JUnit test", message.getMessage());
+		assertTrue(message.getDelay(TimeUnit.NANOSECONDS) > 0);
+		
+		Thread.sleep(600);
+		assertTrue(message.getDelay(TimeUnit.NANOSECONDS) < 0);
+		
+		message.reset();
+		
+		assertEquals("JUnit test", message.getMessage());
+		assertTrue(message.getDelay(TimeUnit.NANOSECONDS) > 0);
+		
+		Thread.sleep(600);
+		assertTrue(message.getDelay(TimeUnit.NANOSECONDS) < 0);
+	}
 }
