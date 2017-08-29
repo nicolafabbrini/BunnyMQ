@@ -1,10 +1,7 @@
 package com.fabbroniko.bunnymq;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-
-import com.fabbroniko.bunnymq.consumer.Consumer;
 
 /**
  * Requirements V1.0:
@@ -19,9 +16,10 @@ import com.fabbroniko.bunnymq.consumer.Consumer;
  */
 public class BunnyMQ {
 
+	public static final String POISON_MESSAGE_CONTENT = "BunnyMQPoisonMessage";
+	
 	private Properties properties;
 	private Map<String, Queue<String>> queueMap; // Queue name, queue
-	private Map<String, List<Consumer>> queueConsumer; // Used to wake up consumers
 	
 	public BunnyMQ() {
 		this(null);
@@ -46,13 +44,13 @@ public class BunnyMQ {
 		// TODO add message to the queue
 	}
 	
-	public void pull(final String queueName) {
+	public Message pull(final String queueName) {
 		// TODO pull message from the given queue
+		return null;
 	}
 	
-	public void acknowledgment(final String queueName, final Acknowledgment acknowledgment) {
-		// TODO ack or nack the last message sent for the given queue.
-		// A new message can't be retrived until the last message is acknowledged;
+	public void close() {
+		// TODO add poison message to each queue
 	}
 	
 	public class Properties {

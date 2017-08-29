@@ -7,7 +7,7 @@ import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
 public class Message implements Delayed {
-
+	
 	private String message;
 	private long expirationTimestamp;
 	private TimeZone timeZone;

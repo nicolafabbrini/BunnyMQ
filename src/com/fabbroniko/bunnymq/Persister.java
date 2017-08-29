@@ -16,7 +16,7 @@ public class Persister {
 		
 	}
 	
-	public void persist(final String message) throws IOException {
+	public void persist(final Message message) throws IOException {
 		// TODO write or update
 		// TODO if it can't write the message, try closing and reopening the connection, if it fails again then throw the exception
 	}
