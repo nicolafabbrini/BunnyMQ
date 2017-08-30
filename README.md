@@ -1,7 +1,8 @@
 # BunnyMQ
 
-TODO:
+## File Structure
 
-Review BunnyQueue, i was basically creating my own SynchronousQueue :S
-Add atomated tests
-Think about an efficient way to persist the queue in a file, maybe using an index?
+________________________________________________________________________
+| Pull Pointer | Push Pointer | Message     | Message     | Message    |
+| 4 Bytes      | 4 Bytes      | n Bytes     | n Bytes     | n Bytes    | ...
+|______________|______________|_____________|_____________|____________|
