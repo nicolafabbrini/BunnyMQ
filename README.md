@@ -64,6 +64,8 @@ The optimisation consists in shifting the messages from the current pullPointer 
 - update and save new pullPointer
 - update and save new pushPointer
 
+That guarantees that the file will not grow up more than the specified size unless its capacity is too low for its current load of work.
+
 Example
 
 Before optimisation:
@@ -71,7 +73,14 @@ Before optimisation:
 | Pull Pointer | Push Pointer | Old Message | Old Message | Message | Message | Message |  |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 4 Bytes | 4 Bytes | N Bytes | N Bytes | N Bytes | N Bytes | N Bytes |  |
-|  |  |  |  | ^--- Current pull pointer | --- | --- | Current push pointer ---^ |
+|  |  |  |  | ^--- Pull pointer |  |  | Push pointer ---^ |
+
+After optimisation:
+
+| Pull Pointer | Push Pointer | Message | Message | Message |  |
+| --- | --- | --- | --- | --- | --- |
+| 4 Bytes | 4 Bytes | N Bytes | N Bytes | N Bytes |  |
+|  |  | ^--- Pull pointer |  |  | Push pointer ---^ |
 
 ### Push
 
