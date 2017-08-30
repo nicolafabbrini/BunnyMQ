@@ -1,5 +1,11 @@
 # BunnyMQ
 
+## Queue Support
+
+- [DelayQueue](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/DelayQueue.html): Push a message with a delay value - it will actually be pushed in the queue after the specified delay.
+- [SynchronousQueue](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/SynchronousQueue.html): Thread-safe queue
+- [LinkedList](https://docs.oracle.com/javase/8/docs/api/java/util/LinkedList.html): Simple not synchronized queue.
+
 ## File Structure
 
 The persistence file is accessed with [RandomAccessFile](https://docs.oracle.com/javase/8/docs/api/java/io/RandomAccessFile.html) that allows read and write in a specific section of the file (after setting up the pointer).
