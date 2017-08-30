@@ -20,7 +20,7 @@ Since Every Message (Payload) inside the queue also has and expireTime (when it 
 | --- | --- |
 | 8 Bytes | N Bytes |
 
-If a message of N Bytes is pushed to a [DelayQueue] (https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/DelayQueue.html), this will be persisted in the hard disk as a message structured as follows:
+So if a message of N Bytes is pushed to a [DelayQueue](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/DelayQueue.html), this will be persisted in the hard disk as a message structured as follows:
 
 | Length | Expire timestamp | Data |
 | --- | --- | --- |
