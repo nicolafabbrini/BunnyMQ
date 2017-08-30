@@ -1,7 +1,7 @@
 package com.fabbroniko.bunnymq;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.DelayQueue;
 
 /**
@@ -20,56 +20,57 @@ public class BunnyMQ {
 	public static final String POISON_MESSAGE_CONTENT = "BunnyMQPoisonMessage";
 	
 	private Properties properties;
-	private DelayQueue<Message> queue;
+	private BlockingQueue<Message> queue;
 	private Persister persister;
 	
 	private boolean isClosing;
 	
-	public BunnyMQ() throws FileNotFoundException {
+	public BunnyMQ() throws IOException {
 		this(null);
 	}
 	
-	public BunnyMQ(final Properties properties) throws FileNotFoundException {
+	public BunnyMQ(final Properties properties) throws IOException {
 		if(properties == null)
 			this.properties = new Properties();
 		
 		this.properties = properties;
 		this.queue = new DelayQueue<>();
-		this.persister = new Persister(null); // TODO file name
 		
-		// TODO try to load the content of previously written file
+		if(properties.isPersistent())
+			this.persister = new Persister(properties.getPersistenceFile(), properties.getMaxFileLengthBeforeOptimisation());
+		
+		if(this.persister == null) {
+			for(final Message m : persister.getStoredQueue()) {
+				this.queue.add(m);
+			}
+		}
 	}
 	
-	public synchronized void push(final String message) {
+	public synchronized void push(final String message) throws IOException {
 		this.push(new Message(message, properties.getDelay()));
 	}
 	
-	public synchronized void push(final Message message) {
+	public synchronized void push(final Message message) throws IOException {
 		if(message == null)
 			throw new NullPointerException();
 		
-		// TODO persist
+		persister.push(message);
 		
 		if(!isClosing)
 			queue.add(message);
 	}
 	
-	public Message pull() {
+	public Message pull() throws InterruptedException, IOException {
 		Message message;
 		
 		// Get the first expired element in the queue
-		try {
-			message = queue.take();
-			
-			// if it's a poison message, add it back to the queue to allow the other consumers to consume it until none is left.
-			if(message.getMessage().equals(POISON_MESSAGE_CONTENT)) {
-				queue.add(message);
-			} else {
-				// TODO remove from persistence
-			}
-		} catch (final InterruptedException e) {
-			// If interrupted, return the poison message to close the consumer;
-			message = new Message(POISON_MESSAGE_CONTENT, 0);
+		message = queue.take();
+		
+		// if it's a poison message, add it back to the queue to allow the other consumers to consume it until none is left.
+		if(message.getMessage().equals(POISON_MESSAGE_CONTENT)) {
+			queue.add(message);
+		} else {
+			persister.pull();
 		}
 			
 		return message;
@@ -87,27 +88,37 @@ public class BunnyMQ {
 	
 	public class Properties {
 		
-		private boolean persistent;
+		private String persistenceFile;
+		private int maxFileLengthBeforeOptimisation;
 		private long delay;
 		
 		public Properties() {
-			this(false);
+			this(null);
 		}
 		
-		public Properties(final boolean persistent) {
-			this(persistent, 0);
+		public Properties(final String persistenceFile) {
+			this(persistenceFile, 0);
 		}
 		
-		public Properties(final boolean persistent, final long delay) {
+		public Properties(final String persistenceFile, final long delay) {
+			this(persistenceFile, 1024 * 512, delay); // Defaulting to half mb
+		}
+		
+		public Properties(final String persistenceFile, final int maxFileLengthBeforeOptimisation, final long delay) {
 			if(delay < 0)
 				throw new IllegalArgumentException("Delay can't be negative.");
 			
-			this.persistent = persistent;
+			this.persistenceFile = persistenceFile;
 			this.delay = delay;
+			this.maxFileLengthBeforeOptimisation = (maxFileLengthBeforeOptimisation < 0) ? 0 : maxFileLengthBeforeOptimisation;
 		}
 		
-		public void setPersistent(final boolean persistent) {
-			this.persistent = persistent;
+		public void setPersistent(final String persistenceFile) {
+			this.persistenceFile = persistenceFile;
+		}
+		
+		public void setMaxFileLengthBeforeOptimisation(final int maxFileLengthBeforeOptimisation) {
+			this.maxFileLengthBeforeOptimisation = maxFileLengthBeforeOptimisation;
 		}
 		
 		public void setDelay(final long delay) {
@@ -115,7 +126,15 @@ public class BunnyMQ {
 		}
 		
 		public boolean isPersistent() {
-			return persistent;
+			return persistenceFile != null;
+		}
+		
+		public String getPersistenceFile() {
+			return persistenceFile;
+		}
+		
+		public int getMaxFileLengthBeforeOptimisation() {
+			return maxFileLengthBeforeOptimisation;
 		}
 		
 		public long getDelay() {
