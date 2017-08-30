@@ -2,7 +2,7 @@
 
 ## File Structure
 
-The persistence file is accessed with [RandomAccessFile](https://docs.oracle.com/javase/8/docs/api/java/io/RandomAccessFile.html).
+The persistence file is accessed with [RandomAccessFile](https://docs.oracle.com/javase/8/docs/api/java/io/RandomAccessFile.html) that allows read and write in a specific section of the file (after setting up the pointer).
 
 | Pull Pointer | Push Pointer | Message | Message | Message |
 | --- | --- | --- | --- | --- |
