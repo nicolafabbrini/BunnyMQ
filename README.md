@@ -51,18 +51,16 @@ Initialise the persister:
 
 ### Get all messages
 
-Create a list of messages reading the informations in the file:
-
-- 
+Creates a list of messages reading the informations in the file from the current pull pointer to the current push pointer.
 
 ### Optimisation
 
 Optimisation is performed when pushPointer > maxFileSizeBeforeOptimisation because every pull operation shifts the pointer without deleting the actual data from the file.
 The optimisation consists in shifting the messages from the current pullPointer position to the beginning of the file and updating the pointers accordingly.
 
-- Shift bytes from pullPointer to pushPointer at the beginning of the file.
-- update and save new pullPointer
-- update and save new pushPointer
+- Shifts bytes from pullPointer to pushPointer at the beginning of the file.
+- Updates and save new pullPointer
+- Updates and save new pushPointer
 
 That guarantees that the file will not grow up more than the specified size unless its capacity is too low for its current load of work.
 
@@ -84,16 +82,18 @@ After optimisation:
 
 ### Push
 
-- Save the new message in the current pushPointer position.
-- Calculate and save the new pushPointer position.
+- Saves the new message in the current pushPointer position.
+- Calculates and saves the new pushPointer position.
 
 ### Pull
 
 Pull operations shift the pull pointer from the current message to the next one (pullPointer = pullPointer + messageLength) because we are not allowed to delete partial bytes - that means that the file is going to grow up indefinetely. 
 It's possible to set up the persister to check the file dimension for every push and if its length is > than X bytes, then it will perform the optimisation (see above operation).
 
-- Save the new pullPointer inside the file.
+- Saves the new pullPointer inside the file.
 
 ## Possible issues that need fixing
 
-I/O operations includes pull/push messages from the file (
+I/O operations such as push and optimisation might be interrupted between the actual push and the pointer update, causing inconsistent pointers the next time the queue is loaded.
+Solution1: commit the changes at the same time.
+Solution2: rollback in case of issues.
